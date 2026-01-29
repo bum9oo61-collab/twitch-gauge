@@ -28,9 +28,8 @@
             try {
                 const response = await fetch(url);
                 const data = await response.text();
-                const rows = data.split('\n');
-                // CSV의 두 번째 줄(A2, B2)을 읽습니다. (따옴표 제거 포함)
-                const cells = rows[1].replace(/"/g, '').split(',');
+                const rows = data.split('\n').filter(row => row.trim() !== ''); // 빈 줄 제거
+                const cells = rows[1].replace(/"/g, '').split(','); // 2행(index 1) 읽기
                 
                 const goal = parseFloat(cells[0]);    // A2: 목표
                 const current = parseFloat(cells[1]); // B2: 현재거리
@@ -48,3 +47,4 @@
 </body>
 
 </html>
+
