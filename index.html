@@ -24,30 +24,41 @@
     <script>
         const url = `https://docs.google.com/spreadsheets/d/16JKGpNA4mWvOnM024HSOo5fLpOj0EftaKEg-2KqvOBk/gviz/tq?tqx=out:csv`;
 
-        async function updateGauge() {
+       async function updateGauge() {
             try {
-                const response = await fetch(url);
+                // 뒤에 &range=A2:B2 를 붙여서 딱 필요한 데이터만 가져오게 합니다.
+                const urlWithRange = url + "&range=A2:B2";
+                const response = await fetch(urlWithRange);
                 const data = await response.text();
-                const cells = rows[0].replace(/"/g, '').split(','); 
-
-                const goal = parseFloat(cells[0]);    // A2 위치의 값 (5)
-                const current = parseFloat(cells[1]); // B2 위치의 값 (0)
                 
-                const goal = parseFloat(cells[0]);    // A2: 목표
-                const current = parseFloat(cells[1]); // B2: 현재거리
-                const percent = Math.min((current / goal) * 100, 100);
+                // 데이터를 한 줄씩 나누고 빈 줄은 제외합니다.
+                const rows = data.split('\n').map(row => row.trim()).filter(row => row !== "");
+                
+                if (rows.length > 0) {
+                    // 구글 시트 API(CSV형태)는 보통 첫 줄에 데이터가 바로 나옵니다.
+                    const cells = rows[0].replace(/"/g, '').split(',');
+                    
+                    const goal = parseFloat(cells[0]) || 0;    // A2 값
+                    const current = parseFloat(cells[1]) || 0; // B2 값
+                    const percent = goal > 0 ? Math.min((current / goal) * 100, 100) : 0;
 
-                document.getElementById('dist-text').innerText = `현재: ${current}km`;
-                document.getElementById('goal-text').innerText = `목표: ${goal}km`;
-                document.getElementById('bar').style.width = percent + '%';
-            } catch (e) { console.error("데이터 로드 실패", e); }
+                    // 이 부분에서 위쪽의 0km 글자들을 실제 데이터로 교체합니다.
+                    document.getElementById('dist-text').innerText = `현재: ${current}km`;
+                    document.getElementById('goal-text').innerText = `목표: ${goal}km`;
+                    document.getElementById('bar').style.width = percent + '%';
+                    
+                    console.log("데이터 로드 성공:", goal, current); // 확인용
+                }
+            } catch (e) { 
+                console.error("데이터 로드 실패:", e); 
+            }
         }
-
         setInterval(updateGauge, 3000); // 3초마다 업데이트
         updateGauge();
     </script>
 </body>
 
 </html>
+
 
 
