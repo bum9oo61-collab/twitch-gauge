@@ -28,8 +28,10 @@
             try {
                 const response = await fetch(url);
                 const data = await response.text();
-                const rows = data.split('\n').filter(row => row.trim() !== ''); // 빈 줄 제거
-                const cells = rows[1].replace(/"/g, '').split(','); // 2행(index 1) 읽기
+                const cells = rows[0].replace(/"/g, '').split(','); 
+
+                const goal = parseFloat(cells[0]);    // A2 위치의 값 (5)
+                const current = parseFloat(cells[1]); // B2 위치의 값 (0)
                 
                 const goal = parseFloat(cells[0]);    // A2: 목표
                 const current = parseFloat(cells[1]); // B2: 현재거리
@@ -47,4 +49,5 @@
 </body>
 
 </html>
+
 
