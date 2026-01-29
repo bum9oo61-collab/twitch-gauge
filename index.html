@@ -5,70 +5,60 @@
     <style>
         body { background: transparent; overflow: hidden; font-family: 'Malgun Gothic', sans-serif; }
         
-        /* 전체 컨테이너 */
         .wrapper { 
             width: 550px; 
-            padding: 50px 40px 20px 40px; 
-            background: rgba(0,0,0,0.4); 
+            padding: 80px 40px 20px 40px; 
+            background: rgba(0,0,0,0.5); 
             border-radius: 30px; 
             color: white; 
             position: relative;
         }
 
-        /* 현재/목표 텍스트 라벨 */
         .label { 
-            font-size: 24px; 
+            font-size: 26px; 
             font-weight: bold; 
             margin-bottom: 15px; 
             display: flex; 
             justify-content: space-between;
-            text-shadow: 2px 2px 4px rgba(0,0,0,1);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
         }
 
-        /* 바닥 배경 바 (바위색 느낌) */
         .bar-container { 
-            width: 100%; 
-            height: 25px; 
-            background: #222; 
-            border-radius: 20px; 
-            border: 3px solid #444;
-            position: relative;
+            width: 100%; height: 25px; 
+            background: #222; border-radius: 20px; 
+            border: 3px solid #444; position: relative;
         }
 
-        /* 게이지가 차오르는 바 */
         .bar-fill { 
-            width: 0%; 
-            height: 100%; 
+            width: 0%; height: 100%; 
             background: linear-gradient(90deg, #00f2fe 0%, #4facfe 100%); 
             border-radius: 15px; 
             transition: width 1.5s ease-in-out; 
-            position: relative; /* 사람 아이콘의 기준점이 됨 */
+            position: relative; 
         }
 
-        /* 바 끝에 붙어 있는 사람 사진 */
+        /* 캐릭터 박스 위치 조정 */
         .runner-box {
             position: absolute;
-            right: -30px; /* 바의 끝지점 살짝 뒤에 배치 */
-            top: -65px;   /* 바 위로 사람을 띄움 */
-            width: 70px;
-            height: 70px;
-            text-align: center;
+            right: -40px; 
+            top: -95px;   /* 캐릭터를 바 위로 더 올림 */
+            width: 100px;
+            height: 100px;
         }
 
         .runner-img {
             width: 100%;
             height: auto;
-            /* 달리는 애니메이션 추가 (위아래로 들썩임) */
             animation: bounce 0.6s infinite alternate;
-            filter: drop-shadow(0px 0px 8px rgba(255,255,255,0.8));
+            filter: drop-shadow(0px 0px 8px rgba(255,255,255,0.6));
         }
 
         @keyframes bounce {
             from { transform: translateY(0); }
-            to { transform: translateY(-10px); }
+            to { transform: translateY(-15px); }
         }
 
-        #dist-text { color: #4facfe; } /* 현재 거리 강조 */
+        #dist-text { color: #00f2fe; }
     </style>
 </head>
 <body>
@@ -88,35 +78,36 @@
 
     <script>
         const sheetId = '16JKGpNA4mWvOnM024HSOo5fLpOj0EftaKEg-2KqvOBk'; 
+        // 데이터 범위를 명확히 지정하여 오류 방지
         const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&range=A2:B2`;
 
         async function updateGauge() {
             try {
                 const response = await fetch(url + "&nocache=" + new Date().getTime());
-                const data = await response.text();
+                const csvData = await response.text();
                 
-                // 데이터 파싱 로직
-                const rows = data.split('\n');
-                const cells = rows[0].split(',').map(c => c.replace(/[^0-9.]/g, ''));
-                
-                const goal = parseFloat(cells[0]) || 5;
-                const current = parseFloat(cells[1]) || 0;
-                const percent = Math.min((current / goal) * 100, 100);
+                // 구글 API 결과물에서 따옴표 제거 및 데이터 추출
+                const rows = csvData.split('\n');
+                if (rows.length > 0) {
+                    const cells = rows[0].replace(/"/g, '').split(',');
+                    
+                    const goal = parseFloat(cells[0]) || 5;    // A2 값
+                    const current = parseFloat(cells[1]) || 0; // B2 값
+                    const percent = Math.min((current / goal) * 100, 100);
 
-                // 화면 갱신
-                document.getElementById('dist-text').innerText = `현재: ${current}km`;
-                document.getElementById('goal-text').innerText = `목표: ${goal}km`;
-                document.getElementById('bar').style.width = percent + '%';
+                    // 화면 텍스트 및 바 위치 업데이트
+                    document.getElementById('dist-text').innerText = `현재: ${current.toFixed(1)}km`;
+                    document.getElementById('goal-text').innerText = `목표: ${goal.toFixed(1)}km`;
+                    document.getElementById('bar').style.width = percent + '%';
+                }
             } catch (e) { 
                 console.error("데이터 업데이트 실패", e); 
             }
         }
 
-        // 3초마다 시트 확인
+        // 3초마다 갱신
         setInterval(updateGauge, 3000); 
-        updateGauge(); // 시작 시 즉시 실행
+        updateGauge();
     </script>
 </body>
 </html>
-
-
