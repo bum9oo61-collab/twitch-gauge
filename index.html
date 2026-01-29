@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { background: transparent; overflow: hidden; font-family: 'Malgun Gothic', sans-serif; }
+        .wrapper { width: 500px; padding: 20px; background: rgba(0,0,0,0.7); border-radius: 20px; color: white; }
+        .label { font-size: 24px; font-weight: bold; margin-bottom: 10px; display: flex; justify-content: space-between; }
+        .bar-container { width: 100%; height: 40px; background: #333; border-radius: 20px; overflow: hidden; border: 2px solid #555; }
+        .bar-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #ff00cc, #3333ff); transition: width 1s ease-in-out; }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="label">
+            <span id="dist-text">현재: 0km</span>
+            <span id="goal-text">목표: 0km</span>
+        </div>
+        <div class="bar-container">
+            <div id="bar" class="bar-fill"></div>
+        </div>
+    </div>
+
+    <script>
+        // ★ 본인의 구글 시트 ID로 바꾸세요 (주소창 /d/와 /edit 사이의 문자열)
+        const sheetId = '16JKGpNA4mWvOnM024HSOo5fLpOj0EftaKEg-2KqvOBk'; 
+        const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv`;
+
+        async function updateGauge() {
+            try {
+                const response = await fetch(url);
+                const data = await response.text();
+                const rows = data.split('\n');
+                // CSV의 두 번째 줄(A2, B2)을 읽습니다. (따옴표 제거 포함)
+                const cells = rows[1].replace(/"/g, '').split(',');
+                
+                const goal = parseFloat(cells[0]);    // A2: 목표
+                const current = parseFloat(cells[1]); // B2: 현재거리
+                const percent = Math.min((current / goal) * 100, 100);
+
+                document.getElementById('dist-text').innerText = `현재: ${current}km`;
+                document.getElementById('goal-text').innerText = `목표: ${goal}km`;
+                document.getElementById('bar').style.width = percent + '%';
+            } catch (e) { console.error("데이터 로드 실패", e); }
+        }
+
+        setInterval(updateGauge, 3000); // 3초마다 업데이트
+        updateGauge();
+    </script>
+</body>
+</html>
