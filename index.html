@@ -37,13 +37,13 @@
             position: relative; 
         }
 
-        /* 캐릭터 박스 위치 조정 */
+        /* 캐릭터 박스: 크기를 1.5배로 키우고 위치 조정 */
         .runner-box {
             position: absolute;
-            right: -40px; 
-            top: -95px;   /* 캐릭터를 바 위로 더 올림 */
-            width: 100px;
-            height: 100px;
+            right: -60px; /* 크기가 커진 만큼 오른쪽 여유도 살짝 조정 */
+            top: -145px;  /* 캐릭터가 바 위에 떠 있도록 높이 조절 (1.5배 반영) */
+            width: 150px; /* 기존 100px -> 150px */
+            height: 150px; /* 기존 100px -> 150px */
         }
 
         .runner-img {
@@ -78,7 +78,6 @@
 
     <script>
         const sheetId = '16JKGpNA4mWvOnM024HSOo5fLpOj0EftaKEg-2KqvOBk'; 
-        // 데이터 범위를 명확히 지정하여 오류 방지
         const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&range=A2:B2`;
 
         async function updateGauge() {
@@ -86,16 +85,14 @@
                 const response = await fetch(url + "&nocache=" + new Date().getTime());
                 const csvData = await response.text();
                 
-                // 구글 API 결과물에서 따옴표 제거 및 데이터 추출
                 const rows = csvData.split('\n');
                 if (rows.length > 0) {
                     const cells = rows[0].replace(/"/g, '').split(',');
                     
-                    const goal = parseFloat(cells[0]) || 5;    // A2 값
-                    const current = parseFloat(cells[1]) || 0; // B2 값
+                    const goal = parseFloat(cells[0]) || 5;    
+                    const current = parseFloat(cells[1]) || 0; 
                     const percent = Math.min((current / goal) * 100, 100);
 
-                    // 화면 텍스트 및 바 위치 업데이트
                     document.getElementById('dist-text').innerText = `현재: ${current.toFixed(1)}km`;
                     document.getElementById('goal-text').innerText = `목표: ${goal.toFixed(1)}km`;
                     document.getElementById('bar').style.width = percent + '%';
@@ -105,7 +102,6 @@
             }
         }
 
-        // 3초마다 갱신
         setInterval(updateGauge, 3000); 
         updateGauge();
     </script>
