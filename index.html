@@ -4,10 +4,71 @@
     <meta charset="UTF-8">
     <style>
         body { background: transparent; overflow: hidden; font-family: 'Malgun Gothic', sans-serif; }
-        .wrapper { width: 500px; padding: 20px; background: rgba(0,0,0,0.7); border-radius: 20px; color: white; }
-        .label { font-size: 24px; font-weight: bold; margin-bottom: 10px; display: flex; justify-content: space-between; }
-        .bar-container { width: 100%; height: 40px; background: #333; border-radius: 20px; overflow: hidden; border: 2px solid #555; }
-        .bar-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #ff00cc, #3333ff); transition: width 1s ease-in-out; }
+        
+        /* 전체 컨테이너 */
+        .wrapper { 
+            width: 550px; 
+            padding: 50px 40px 20px 40px; 
+            background: rgba(0,0,0,0.4); 
+            border-radius: 30px; 
+            color: white; 
+            position: relative;
+        }
+
+        /* 현재/목표 텍스트 라벨 */
+        .label { 
+            font-size: 24px; 
+            font-weight: bold; 
+            margin-bottom: 15px; 
+            display: flex; 
+            justify-content: space-between;
+            text-shadow: 2px 2px 4px rgba(0,0,0,1);
+        }
+
+        /* 바닥 배경 바 (바위색 느낌) */
+        .bar-container { 
+            width: 100%; 
+            height: 25px; 
+            background: #222; 
+            border-radius: 20px; 
+            border: 3px solid #444;
+            position: relative;
+        }
+
+        /* 게이지가 차오르는 바 */
+        .bar-fill { 
+            width: 0%; 
+            height: 100%; 
+            background: linear-gradient(90deg, #00f2fe 0%, #4facfe 100%); 
+            border-radius: 15px; 
+            transition: width 1.5s ease-in-out; 
+            position: relative; /* 사람 아이콘의 기준점이 됨 */
+        }
+
+        /* 바 끝에 붙어 있는 사람 사진 */
+        .runner-box {
+            position: absolute;
+            right: -30px; /* 바의 끝지점 살짝 뒤에 배치 */
+            top: -65px;   /* 바 위로 사람을 띄움 */
+            width: 70px;
+            height: 70px;
+            text-align: center;
+        }
+
+        .runner-img {
+            width: 100%;
+            height: auto;
+            /* 달리는 애니메이션 추가 (위아래로 들썩임) */
+            animation: bounce 0.6s infinite alternate;
+            filter: drop-shadow(0px 0px 8px rgba(255,255,255,0.8));
+        }
+
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-10px); }
+        }
+
+        #dist-text { color: #4facfe; } /* 현재 거리 강조 */
     </style>
 </head>
 <body>
@@ -17,48 +78,43 @@
             <span id="goal-text">목표: 0km</span>
         </div>
         <div class="bar-container">
-            <div id="bar" class="bar-fill"></div>
+            <div id="bar" class="bar-fill">
+                <div class="runner-box">
+                    <img id="runner-pic" class="runner-img" src="https://imgur.com/a/NoInpnj" alt="runner">
+                </div>
+            </div>
         </div>
     </div>
 
-   <script>
+    <script>
         const sheetId = '16JKGpNA4mWvOnM024HSOo5fLpOj0EftaKEg-2KqvOBk'; 
-        // 범위를 A2:B2로 고정해서 가져옵니다.
         const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&range=A2:B2`;
 
         async function updateGauge() {
             try {
-                const response = await fetch(url + "&nocache=" + new Date().getTime()); // 캐시 방지
+                const response = await fetch(url + "&nocache=" + new Date().getTime());
                 const data = await response.text();
                 
-                // 데이터에서 숫자만 추출하는 정규식 활용
-                // 따옴표나 공백을 제거하고 순수하게 숫자와 점(.)만 남깁니다.
+                // 데이터 파싱 로직
                 const rows = data.split('\n');
                 const cells = rows[0].split(',').map(c => c.replace(/[^0-9.]/g, ''));
                 
-                const goal = parseFloat(cells[0]) || 5;    // 실패 시 기본값 5
-                const current = parseFloat(cells[1]) || 0; // 실패 시 기본값 0
-                
+                const goal = parseFloat(cells[0]) || 5;
+                const current = parseFloat(cells[1]) || 0;
                 const percent = Math.min((current / goal) * 100, 100);
 
-                // 화면 업데이트
+                // 화면 갱신
                 document.getElementById('dist-text').innerText = `현재: ${current}km`;
                 document.getElementById('goal-text').innerText = `목표: ${goal}km`;
                 document.getElementById('bar').style.width = percent + '%';
-                
-                console.log("읽어온 값 - 목표:", goal, "현재:", current);
             } catch (e) { 
-                console.error("데이터 로드 실패:", e); 
+                console.error("데이터 업데이트 실패", e); 
             }
         }
 
+        // 3초마다 시트 확인
         setInterval(updateGauge, 3000); 
-        updateGauge();
+        updateGauge(); // 시작 시 즉시 실행
     </script>
 </body>
-
 </html>
-
-
-
-
